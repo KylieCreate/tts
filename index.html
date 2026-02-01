@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TTS Browser Source</title>
+</head>
+<body>
+<script>
+const API_URL = "/api/messages";
+let lastMessages = [];
+
+// Poll messages every 200ms
+async function pollMessages() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    if (data.messages && data.messages.length > 0) {
+      data.messages.forEach(msg => {
+        console.log("[Browser] Received:", msg); // log every message received
+        const utter = new SpeechSynthesisUtterance(msg);
+        speechSynthesis.speak(utter);
+      });
+    }
+  } catch (err) {
+    console.error("[Browser] Poll error:", err);
+  } finally {
+    setTimeout(pollMessages, 200); // repeat
+  }
+}
+
+// Start polling
+pollMessages();
+</script>
+</body>
+</html>
