@@ -34,41 +34,55 @@ body {
 <script>
 const API_URL = "/api/messages"; // your Vercel API
 const messagesDiv = document.getElementById("messages");
+const statusDiv = document.getElementById("status");
 
+// ====== Flashing "Page loaded" color every 10s ======
+const colors = ["#0f0", "#ff0", "#0ff", "#f0f"];
+let colorIndex = 0;
+setInterval(() => {
+    statusDiv.style.color = colors[colorIndex];
+    colorIndex = (colorIndex + 1) % colors.length;
+}, 10000); // every 10 seconds
+
+// ====== Function to add messages ======
 function addMessage(msg) {
     // remove previous latest highlight
     const prev = messagesDiv.querySelector(".latest");
-    if (prev) prev.classList.remove("latest");
+    if(prev) prev.classList.remove("latest");
 
-    // add new message
+    // create new message
     const el = document.createElement("div");
     el.className = "message latest";
     el.textContent = msg;
     messagesDiv.appendChild(el);
+
+    // scroll to bottom
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-    // speak message
-    speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
+    // speak the message
+    if ("speechSynthesis" in window) {
+        speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
+    }
 
-    // console log
     console.log("[Browser] Received:", msg);
 }
 
-// Poll messages from Vercel API every 200ms
+// ====== Poll Vercel API for messages ======
 async function pollMessages() {
     try {
         const res = await fetch(API_URL);
+        if(!res.ok) throw new Error("HTTP "+res.status);
         const data = await res.json();
-        if (data.messages?.length) {
+        if(data.messages?.length){
             data.messages.forEach(msg => addMessage(msg));
         }
-    } catch (e) {
+    } catch(e) {
         console.error("[Browser] Poll error:", e);
     }
     setTimeout(pollMessages, 200);
 }
 
-// Start polling
+// start polling
 pollMessages();
 </script>
 </body>
