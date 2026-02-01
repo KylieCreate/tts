@@ -2,88 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>TTS Browser Source</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance</title>
 <style>
 body {
-    font-family: sans-serif;
     background: #111;
-    color: #0f0;
-    padding: 10px;
+    color: #ff4444;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
 }
-#status {
-    font-weight: bold;
-    margin-bottom: 10px;
+h1 {
+    font-size: 3em;
+    margin-bottom: 0.5em;
 }
-#messages {
-    max-height: 400px;
-    overflow-y: auto;
+p {
+    font-size: 1.5em;
+    text-align: center;
 }
-.message {
-    margin: 2px 0;
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
 }
-.latest {
-    color: #ff0; /* highlight latest message */
-    font-weight: bold;
+h1 {
+    animation: pulse 2s infinite;
 }
 </style>
 </head>
 <body>
-<div id="status">Page loaded ✅</div>
-<div id="messages"></div>
-
-<script>
-const API_URL = "/api/messages"; // your Vercel API
-const messagesDiv = document.getElementById("messages");
-const statusDiv = document.getElementById("status");
-
-// ====== Flashing "Page loaded" color every 10s ======
-const colors = ["#0f0", "#ff0", "#0ff", "#f0f"];
-let colorIndex = 0;
-setInterval(() => {
-    statusDiv.style.color = colors[colorIndex];
-    colorIndex = (colorIndex + 1) % colors.length;
-}, 10000); // every 10 seconds
-
-// ====== Function to add messages ======
-function addMessage(msg) {
-    // remove previous latest highlight
-    const prev = messagesDiv.querySelector(".latest");
-    if(prev) prev.classList.remove("latest");
-
-    // create new message
-    const el = document.createElement("div");
-    el.className = "message latest";
-    el.textContent = msg;
-    messagesDiv.appendChild(el);
-
-    // scroll to bottom
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-    // speak the message
-    if ("speechSynthesis" in window) {
-        speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
-    }
-
-    console.log("[Browser] Received:", msg);
-}
-
-// ====== Poll Vercel API for messages ======
-async function pollMessages() {
-    try {
-        const res = await fetch(API_URL);
-        if(!res.ok) throw new Error("HTTP "+res.status);
-        const data = await res.json();
-        if(data.messages?.length){
-            data.messages.forEach(msg => addMessage(msg));
-        }
-    } catch(e) {
-        console.error("[Browser] Poll error:", e);
-    }
-    setTimeout(pollMessages, 200);
-}
-
-// start polling
-pollMessages();
-</script>
+<h1>🛠 Maintenance Mode 🛠</h1>
+<p>The TTS bot and chat overlay are temporarily offline.<br>
+We’ll be back shortly!</p>
 </body>
 </html>
