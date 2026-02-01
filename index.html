@@ -4,10 +4,27 @@
 <meta charset="UTF-8">
 <title>TTS Browser Source</title>
 <style>
-body { font-family: sans-serif; background:#111; color:#0f0; padding:10px; }
-#status { font-weight:bold; margin-bottom:10px; }
-#messages { max-height:400px; overflow-y:auto; }
-.message { margin:2px 0; }
+body {
+    font-family: sans-serif;
+    background: #111;
+    color: #0f0;
+    padding: 10px;
+}
+#status {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+#messages {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.message {
+    margin: 2px 0;
+}
+.latest {
+    color: #ff0; /* highlight latest message */
+    font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -15,35 +32,43 @@ body { font-family: sans-serif; background:#111; color:#0f0; padding:10px; }
 <div id="messages"></div>
 
 <script>
-const API="/api/messages";
+const API_URL = "/api/messages"; // your Vercel API
 const messagesDiv = document.getElementById("messages");
 
-function addMessage(msg){
-  const el = document.createElement("div");
-  el.className="message";
-  el.textContent = msg;
-  messagesDiv.appendChild(el);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+function addMessage(msg) {
+    // remove previous latest highlight
+    const prev = messagesDiv.querySelector(".latest");
+    if (prev) prev.classList.remove("latest");
+
+    // add new message
+    const el = document.createElement("div");
+    el.className = "message latest";
+    el.textContent = msg;
+    messagesDiv.appendChild(el);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    // speak message
+    speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
+
+    // console log
+    console.log("[Browser] Received:", msg);
 }
 
-// Poll messages every 200ms
-async function pollMessages(){
-  try{
-    const res = await fetch(API);
-    const data = await res.json();
-    if(data.messages?.length){
-      data.messages.forEach(msg=>{
-        console.log("[Browser] Received:", msg);
-        addMessage(msg);
-        speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
-      });
+// Poll messages from Vercel API every 200ms
+async function pollMessages() {
+    try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        if (data.messages?.length) {
+            data.messages.forEach(msg => addMessage(msg));
+        }
+    } catch (e) {
+        console.error("[Browser] Poll error:", e);
     }
-  } catch(e){
-    console.error("[Browser] Poll error:", e);
-  }
-  setTimeout(pollMessages,200);
+    setTimeout(pollMessages, 200);
 }
 
+// Start polling
 pollMessages();
 </script>
 </body>
