@@ -1,31 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>TTS Browser Source</title>
+<meta charset="UTF-8">
+<title>TTS Browser Source</title>
+<style>
+body { font-family: sans-serif; background:#111; color:#0f0; padding:10px; }
+#status { font-weight:bold; margin-bottom:10px; }
+#messages { max-height:400px; overflow-y:auto; }
+.message { margin:2px 0; }
+</style>
 </head>
 <body>
-<script>
-const API_URL = "/api/messages";
-let lastMessages = [];
+<div id="status">Page loaded ✅</div>
+<div id="messages"></div>
 
-// Poll messages every 200ms
-async function pollMessages() {
-  try {
-    const res = await fetch(API_URL);
+<script>
+const API="/api/messages";
+const messagesDiv = document.getElementById("messages");
+
+function addMessage(msg){
+  const el = document.createElement("div");
+  el.className = "message";
+  el.textContent = msg;
+  messagesDiv.appendChild(el);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+async function pollMessages(){
+  try{
+    const res = await fetch(API);
     const data = await res.json();
-    if (data.messages && data.messages.length > 0) {
-      data.messages.forEach(msg => {
-        console.log("[Browser] Received:", msg); // log every message received
-        const utter = new SpeechSynthesisUtterance(msg);
-        speechSynthesis.speak(utter);
+    if(data.messages?.length){
+      data.messages.forEach(msg=>{
+        console.log("[Browser] Received:", msg);
+        addMessage(msg);
+        speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
       });
     }
-  } catch (err) {
-    console.error("[Browser] Poll error:", err);
-  } finally {
-    setTimeout(pollMessages, 200); // repeat
+  } catch(e){
+    console.error("[Browser] Poll error:", e);
   }
+  setTimeout(pollMessages, 200);
 }
 
 // Start polling
